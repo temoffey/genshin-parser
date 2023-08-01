@@ -28,7 +28,8 @@
       "extraFiles": "traineddata"
     },
     "portable": {
-      "requestExecutionLevel": "admin"
+      "requestExecutionLevel": "admin",
+      "splashImage": "assets/splash.bmp"
     },
     "npmRebuild": false
   }
