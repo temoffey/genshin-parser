@@ -2,6 +2,11 @@ const { homedir } = require('os');
 const { writeFile } = require('fs').promises;
 const { now } = require('./utils.js');
 
+function formatCount(str) {
+	let matches = str.match(/(\d+)\/\d+/);
+	return matches ? parseInt(matches[1]) : 0;
+}
+
 function format(arr) {
 	return arr.map(formatOne);
 }
@@ -57,4 +62,5 @@ function saveJSON(file, data) {
 	return writeFile(homedir() + '/Desktop/' + file + '.json', json);
 }
 
+module.exports.formatCount = formatCount;
 module.exports.saveJSON = saveJSON;

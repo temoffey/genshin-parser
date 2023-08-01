@@ -1,19 +1,8 @@
 module.exports = {
-	"menu": "#EBE4D7",
-	"arts": {
-		"count": true,
-	},
+	"menu": "#ebe4d8",
 	"art": {
-		"parse": {
-			"name": true,
-			"main": true,
-			"type": true,
-			"state": true,
-			"level": true,
-		},
-		"stars": "#FFCC32",
-		"lock": "#FF8A75",
-		"stats": "#495366",
-		"set": "#5CB256"
+		"star": "#ffcc32",
+		"lock": "#ff8a75",
+		"owner": "#ffe7ba"
 	}
 }

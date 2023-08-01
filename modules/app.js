@@ -1,11 +1,10 @@
 const { click, esc, drag, isColor: isColScreen, setDiff, shot } = require('./nut.js');
 const { getImage, getBuffer, isColor: isColImage, saveImage } = require('./jimp.js');
 const { parse, start, stop } = require('./tesseract.js');
-const { log, shift, sleep } = require('./utils.js');
-const { saveJSON } = require('./format.js');
+const { log, shift, sleep, getPos } = require('./utils.js');
+const { formatCount, saveJSON } = require('./format.js');
 const { focusPos } = require('./ffi.js');
 
-const poss = require('../configs/positions.js');
 const col = require('../configs/colors.js');
 let pos;
 
@@ -24,12 +23,8 @@ async function go() {
 async function focus(title) {
 	log('focus', title);
 	const rect = focusPos(title);
+	pos = getPos(rect);
 	await sleep(1000);
-	setDiff(rect);
-	let resolution = rect[2] + 'x' + rect[3];
-	if (!poss[resolution])throw new Error('Установлено недопустимое разрешение "' + resolution + '". ' +
-		'Допустимые разрешения: ' + Object.keys(poss).join(', '));
-	pos = poss[resolution];
 }
 
 async function menu() {
@@ -43,7 +38,7 @@ async function menu() {
 }
 
 async function arts() {
-	await click(pos.arts.menu);
+	await click(pos.menu.arts);
 	await sleep(2000);
 	await click(pos.arts.tab);
 	await sleep(1000);
@@ -52,7 +47,7 @@ async function arts() {
 	await saveImage(image, 'count', col.arts.count);
 	let buffer = await getBuffer(image, col.arts.count);
 	let result = await parse(buffer);
-	let count = parseInt(result);
+	let count = formatCount(result);
 	if (!count) throw new Error('Не удалось прочитать количество Артефактов');
 	log('arts', count);
 	return count;
@@ -64,17 +59,17 @@ async function scan(start, count) {
 	let scroll = 0;
 	let step = pos.arts.rows - 1;
 	for (let i = start; i < count; i++) {
-		let x = i % pos.arts.columns;
+		let x = i % pos.arts.cols;
 		let y = Math.floor(i / pos.arts.columns);
 		while (y - scroll >= pos.arts.rows) {
 			await drag(
-				shift(pos.arts.first, pos.arts.shift, [ 0, pos.arts.rows - 1 - step ]),
-				shift(pos.arts.first, pos.arts.shift, [ 0, pos.arts.rows - 1 ]),
+				shift(pos.arts, 1, 1),
+				shift(pos.arts, 1, pos.arts.rows),
 			);
 			scroll += step;
 			await sleep(200);
 		}
-		results.push(await scanOne(shift(pos.arts.first, pos.arts.shift, [ x, y - scroll ])));
+		results.push(await scanOne(shift(pos.arts, x, y - scroll)));
 	}
 	return results;
 }
@@ -86,40 +81,27 @@ async function scanOne(point) {
 	let result = {};
 	let bitmap = await shot(pos.art.shot);
 	let image = await getImage(bitmap);
+	let fields = [ 'main', 'level', 'bottom' ];
 
 	await saveImage(image, 'shot');
-	for (let key in pos.art.parse)
-		await saveImage(image, key, col.art.parse[key], pos.art.parse[key]);
 
 	result.stars = 0;
-	for (let i = 0; i < pos.art.stars.columns; i++)
-		if (await isColImage(image, shift(pos.art.stars.first, pos.art.stars.shift, i), col.art.stars))
-			result.stars++;
+	while (await isColImage(image, shift(pos.art.stars, result.stars, 0), col.art.stars))
+		result.stars++;
 
 	result.lock = await isColImage(image, pos.art.lock, col.art.lock);
 
-	result.stats = 0;
-	for (let i = 0; i < pos.art.stats.rows; i++)
-		if (await isColImage(image, shift(pos.art.stats.first, pos.art.stats.shift, i), col.art.stats))
-			result.stats++;
-
 	let buffer = await getBuffer(image);
-	for (let key in pos.art.parse)
-		if (!col.art.parse[key])
-			result[key] = await parse(buffer, pos.art.parse[key]);
-
-	if (result.stats) {
-		await saveImage(image, 'stats', false, shift(pos.art.bottom.first, pos.art.bottom.shift, result.stats));
-		result.bottom = await parse(buffer, shift(pos.art.bottom.first, pos.art.bottom.shift, result.stats));
+	for (let field in fields) {
+		await saveImage(image, field, false, pos.art[field]);
+		result[field] = await parse(buffer, pos.art[field]);
 	}
 
-	await saveImage(image, 'set', false, shift(pos.art.set.first, pos.art.set.shift, result.stats));
-	result.set = await parse(buffer, shift(pos.art.set.first, pos.art.set.shift, result.stats));
-
-	buffer = await getBuffer(image, true);
-	for (let key in pos.art.parse)
-		if (col.art.parse[key])
-			result[key] = await parse(buffer, pos.art.parse[key]);
+	result.owner = '';
+	if (await isColImage(image, pos.art.owner.check, col.art.owner)) {
+		await saveImage(image, field, false, pos.art[field]);
+		result.owner = await parse(buffer, pos.art.owner.name);
+	}
 
 	return result;
 }

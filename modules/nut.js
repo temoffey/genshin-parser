@@ -1,32 +1,30 @@
 const { Button, Key, keyboard, mouse, screen, straightTo } = require('@nut-tree/nut-js');
 const { diffColor, log, sleep } = require('./utils.js');
 
-const DIFF = [ 0, 0 ];
-
 mouse.config.autoDelayMs = 10;
 mouse.config.mouseSpeed = 500;
 keyboard.config.autoDelayMs = 10;
 screen.config.highlightDurationMs = 1000;
 
-function setDiff(point) {
-	DIFF[0] = point[0];
-	DIFF[1] = point[1];
+function calcPoint(point) {
+	return {
+		x: point[0],
+		y: point[1],
+	};
+}
+
+function calcRect(rect) {
+	return {
+		left: rect[0],
+		top: rect[1],
+		width: rect[2],
+		height: rect[3],
+	};
 }
 
 async function setPos(point) {
 	if (point)
-		await mouse.setPosition({
-			x: point[0] + DIFF[0],
-			y: point[1] + DIFF[1],
-		});
-}
-
-async function getPos() {
-	const point = await mouse.getPosition();
-	return [
-		point.x - DIFF[0],
-		point.y - DIFF[1],
-	];
+		await mouse.setPosition(calcPoint(point));
 }
 
 async function click(point) {
@@ -41,10 +39,7 @@ async function drag(to, from) {
 	await sleep(200);
 	await mouse.pressButton(Button.LEFT);
 	await sleep(100);
-	await mouse.move(straightTo({
-		x: to[0] + DIFF[0],
-		y: to[1] + DIFF[1],
-	}));
+	await mouse.move(straightTo(calcPoint(to)));
 	await sleep(500);
 	await mouse.releaseButton(Button.LEFT);
 }
@@ -66,10 +61,7 @@ async function esc() {
 }
 
 async function getColor(point) {
-	const color = await screen.colorAt({
-		x: point[0] + DIFF[0],
-		y: point[1] + DIFF[1],
-	});
+	const color = await screen.colorAt(calcPoint(point));
 	return color.toHex().substr(0, 7);
 }
 
@@ -81,32 +73,20 @@ async function isColor(point, color, diff) {
 
 async function shot(rect) {
 	log('shot', rect);
-	const image = await screen.grabRegion({
-		left: rect[0] + DIFF[0],
-		top: rect[1] + DIFF[1],
-		width: rect[2],
-		height: rect[3],
-	});
+	const image = await screen.grabRegion(calcRect(rect));
 	return image.toRGB();
 }
 
 async function view(rect) {
 	log('view', rect);
-	await screen.highlight({
-		left: rect[0] + DIFF[0],
-		top: rect[1] + DIFF[1],
-		width: rect[2],
-		height: rect[3],
-	});
+	await screen.highlight(calcRect(rect));
 }
 
 module.exports.click = click;
 module.exports.drag = drag;
 module.exports.esc = esc;
 module.exports.getColor = getColor;
-module.exports.getPos = getPos;
 module.exports.isColor = isColor;
-module.exports.setDiff = setDiff;
 module.exports.setPos = setPos;
 module.exports.shot = shot;
 module.exports.tap = tap;

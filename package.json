@@ -18,7 +18,7 @@
     "tesseract.js": "4.*.*"
   },
   "devDependencies": {
-    "electron": "25.*.*"
+    "electron": "20.3.8"
   },
   "build": {
     "productName": "Genshin Parser",
