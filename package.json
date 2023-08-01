@@ -1,6 +1,6 @@
 {
   "name": "genshin-parser",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Приложение для автоматической навигации по приложению Genshin Impact, захвата и распознавания изображений, и формирования таблиц с данными о предметах и уровнях.",
   "author": "temofffey <temofffey@gmial.com>",
   "main": "main.js",
@@ -11,14 +11,14 @@
   },
   "private": true,
   "dependencies": {
-    "@nut-tree/nut-js": "^2.1.1",
-    "color-difference": "^0.3.4",
-    "ffi-napi": "^4.0.3",
-    "jimp": "^0.16.1",
-    "tesseract.js": "^2.1.5"
+    "@nut-tree/nut-js": "3.*.*",
+    "color-difference": "0.*.*",
+    "ffi-napi": "4.*.*",
+    "jimp": "0.*.*",
+    "tesseract.js": "4.*.*"
   },
   "devDependencies": {
-    "electron": "^18.1.0"
+    "electron": "25.*.*"
   },
   "build": {
     "productName": "Genshin Parser",

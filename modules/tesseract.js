@@ -17,10 +17,9 @@ async function parse(buffer, rect) {
 }
 
 async function start() {
-	worker = tesseract.createWorker({ cachePath: './traineddata' });
-	await worker.load();
-	await worker.loadLanguage('rus+eng');
-	await worker.initialize('rus+eng');
+	worker = await tesseract.createWorker({ cachePath: './traineddata' });
+	await worker.loadLanguage('eng');
+	await worker.initialize('eng');
 }
 async function stop() {
 	await worker.terminate();
